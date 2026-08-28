@@ -3,7 +3,7 @@ import { defineStore } from 'pinia';
 
 export type NotificationType = 'success' | 'error' | 'info';
 
-export interface Notification {
+export interface INotification {
 	id: number;
 	type: NotificationType;
 	message: string;
@@ -12,7 +12,7 @@ export interface Notification {
 const DEFAULT_DURATION_MS = 4000;
 
 export const useNotificationsStore = defineStore('notifications', () => {
-	const items = ref<Notification[]>([]);
+	const items = ref<INotification[]>([]);
 	let nextId = 0;
 
 	function notify(type: NotificationType, message: string, duration = DEFAULT_DURATION_MS) {

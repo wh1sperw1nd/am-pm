@@ -3,26 +3,30 @@ import { onMounted, ref, useId } from 'vue';
 import { storeToRefs } from 'pinia';
 import BaseCard from '@/components/common/BaseCard.vue';
 import { pluralize } from "@/utils/text.ts";
-import { GLASS_TYPES, type GlassOption } from '@/data/options';
+import type { ListItem } from '@/types/ui';
 import { useSommelierStore } from '@/store/sommelier';
+import { useReferenceDataStore } from '@/store/referenceData';
 
 const glassImages = import.meta.glob<string>('../assets/img/glass/*.png', {
     eager: true,
     import: 'default',
 });
 
-const glassSrc = (glass: GlassOption) => glassImages[`../assets/img/glass/${glass.id}.png`];
+const glassSrc = (glass: ListItem) => glassImages[`../assets/img/glass/${glass.slug}.png`];
 
-const GlassesTypes = GLASS_TYPES;
+const store = useSommelierStore();
+const { glass: selected } = storeToRefs(store);
 
-const { glass: selected } = storeToRefs(useSommelierStore());
+const referenceData = useReferenceDataStore();
+const { glasses } = storeToRefs(referenceData);
 
 const uid = useId();
-const slideId = (glass: GlassOption) => `${uid}-${glass.id}`;
+const slideId = (glass: ListItem) => `${uid}-${glass.slug}`;
 
 const track = ref<HTMLUListElement | null>(null);
 const atStart = ref(true);
 const atEnd = ref(false);
+
 
 /** Distance between two slides, gap included. */
 function slideStep(el: HTMLElement) {
@@ -31,24 +35,27 @@ function slideStep(el: HTMLElement) {
 }
 
 function updateEdges() {
-    const el = track.value;
+    const el: HTMLElement | null = track.value;
     if (!el) return;
     atStart.value = el.scrollLeft <= 1;
     atEnd.value = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
 }
 
 function step(direction: 1 | -1) {
-    const el = track.value;
+    const el: HTMLElement | null = track.value;
     if (!el) return;
     el.scrollBy({ left: direction * slideStep(el), behavior: 'smooth' });
 }
 
-onMounted(updateEdges);
+onMounted(async () => {
+    await referenceData.loadGlasses();
+    updateEdges();
+});
 
 </script>
 
 <template>
-    <BaseCard title="Glass type" :description="pluralize(GlassesTypes.length, 'species')" class="max-h-100"
+    <BaseCard title="Glass type" :description="pluralize(glasses.length, 'species')" class="max-h-96"
               content-class="h-72">
         <div class="relative h-full">
             <!-- track: native scroll + snap -->
@@ -57,17 +64,17 @@ onMounted(updateEdges);
                     class="track flex h-full gap-3 snap-x snap-mandatory scroll-smooth overflow-x-auto overflow-y-hidden"
                     @scroll.passive="updateEdges"
             >
-                <li v-for="glass in GlassesTypes" :key="glass.id" :id="slideId(glass)"
+                <li v-for="glass in glasses" :key="glass.slug" :id="slideId(glass)"
                     class="snap-start shrink-0 w-full">
                     <label
                             class="group relative flex h-full w-full cursor-pointer flex-col items-center overflow-hidden"
                     >
-                        <input type="radio" class="sr-only" :name="uid" :value="glass.id" v-model="selected"/>
-                        <img class="flex-1" width="256" height="256" :src="glassSrc(glass)" :alt="glass.label"
+                        <input type="radio" class="sr-only" :name="uid" :value="glass.slug" v-model="selected"/>
+                        <img class="flex-1" width="256" height="256" :src="glassSrc(glass)" :alt="glass.name"
                              aria-hidden="true"/>
                         <span
                                 class="p-3 border-t w-full text-center border-gray-200 transition-colors group-has-checked:bg-blue-600 group-has-checked:text-white"
-                        >{{ glass.label }}</span>
+                        >{{ glass.name }}</span>
                     </label>
                 </li>
             </ul>

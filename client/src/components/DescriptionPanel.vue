@@ -31,7 +31,7 @@ const inputClass =
 </script>
 
 <template>
-	<BaseCard title="Description" variant="secondary" class="md:col-span-2 lg:max-h-100"
+	<BaseCard title="Description" variant="secondary" class="md:col-span-2 lg:max-h-96"
 			  content-class="h-72 flex flex-col p-3">
 		<input :id="`${uid}-name`" v-model="name" type="text" name="name" placeholder="Name" class="mb-2"
 			   :class="inputClass"/>

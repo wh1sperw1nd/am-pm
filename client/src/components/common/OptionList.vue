@@ -16,7 +16,7 @@ const selected = defineModel<ItemId | null>({ default: null });
                     :class="selected === item.id ? 'bg-gray-200 font-semibold' : 'text-gray-700'"
                     @click="selected = item.id"
             >
-                <span>{{ item.label }}</span>
+                <span>{{ item.name }}</span>
                 <span v-if="item.hint">{{ item.hint }}</span>
             </button>
         </template>

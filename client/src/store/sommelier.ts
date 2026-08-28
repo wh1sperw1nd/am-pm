@@ -1,38 +1,58 @@
-import {computed, ref} from 'vue';
+import {computed, ref, type ComputedRef} from 'vue';
 import {defineStore} from 'pinia';
-import type {ItemId} from '@/types/ui';
-import {COCKTAIL_TYPES, GLASS_TYPE_COMPATIBILITY} from '@/data/options';
+import type {ItemId, IListItem} from '@/types/ui';
+import {useReferenceDataStore} from '@/store/referenceData';
+
+/**
+ * Filters `allItems` down to the ones listed for `key` in `compatibilityMap`; returns
+ * `allItems` unchanged when there's no key selected or no compatibility entry for it.
+ */
+const useCompatibilityFilter = <T extends IListItem>(
+	allItems: () => T[],
+	key: () => string | null,
+	compatibilityMap: () => Record<string, string[]>,
+): ComputedRef<T[]> => {
+	return computed(() => {
+		const all = allItems();
+		const selectedKey = key();
+		if (selectedKey === null) return all;
+		const allowed = compatibilityMap()[selectedKey];
+		if (!allowed) return all;
+		return all.filter((item) => allowed.includes(item.slug));
+	});
+};
+
+export const UNITS = ['g', 'kg', 'ml', 'l', 'cl', 'oz', 'tbsp', 'tsp', 'dash', 'pc'] as const;
+export type Unit = typeof UNITS[number] | '';
 
 export type IngredientKind = 'ingredient' | 'garnish';
 
-export interface Ingredient {
+export interface IRecipeIngredient {
 	id: number;
 	name: string;
 	amount: string;
+	unit: Unit;
 	kind: IngredientKind;
 }
 
-let nextIngredientId = 0;
-const makeIngredient = (name: string, amount: string, kind: IngredientKind = 'ingredient'): Ingredient => ({
-	id: nextIngredientId++,
+let nextIngredientRowId = 0;
+const makeIngredientRow = (name = '', amount = '', unit: Unit = '', kind: IngredientKind = 'ingredient'): IRecipeIngredient => ({
+	id: nextIngredientRowId++,
 	name,
 	amount,
+	unit,
 	kind,
 });
 
-const defaultIngredients = (): Ingredient[] => [
-	makeIngredient('Rowan liqueur (cognac-based)', '1 tbsp'),
-	makeIngredient('Brandy', '100 ml'),
-	makeIngredient('Cocktail cherry', '1 pc', 'garnish'),
-];
-
 export const useSommelierStore = defineStore('sommelier', () => {
+	const referenceData = useReferenceDataStore();
+
 	const glass = ref<ItemId | null>(null);
 	const cocktailType = ref<ItemId | null>(null);
 	const strength = ref<ItemId | null>(null);
 	const base = ref<ItemId | null>(null);
 
-	const ingredients = ref<Ingredient[]>(defaultIngredients());
+	const ingredients = ref<IRecipeIngredient[]>([]);
 
 	const portions = ref(2);
 	const doublePortions = ref(false);
@@ -53,19 +73,35 @@ export const useSommelierStore = defineStore('sommelier', () => {
 	const shortDescription = ref('');
 	const instructions = ref('');
 
+	/** Finds the slug of the item with the given id in `list`, or null if nothing is selected/found. */
+	const slugOf = (list: IListItem[], id: ItemId | null) => list.find((item) => item.id === id)?.slug ?? null;
+
 	/** Cocktail types allowed for the currently selected glass; unrestricted if the glass has no compatibility entry. */
-	const availableCocktailTypes = computed(() => {
-		if (glass.value === null) return COCKTAIL_TYPES;
-		const allowed = GLASS_TYPE_COMPATIBILITY[glass.value];
-		if (!allowed) return COCKTAIL_TYPES;
-		return COCKTAIL_TYPES.filter((type) => allowed.includes(type.id));
-	});
+	const availableCocktailTypes = useCompatibilityFilter(
+		() => referenceData.cocktailTypes,
+		() => glass.value as string | null, // glass is keyed by slug directly, not by id
+		() => referenceData.glassTypeCompatibilityMap,
+	);
+
+	/** Strengths allowed for the currently selected cocktail type; unrestricted if the type has no compatibility entry. */
+	const availableStrengths = useCompatibilityFilter(
+		() => referenceData.strengths,
+		() => slugOf(referenceData.cocktailTypes, cocktailType.value),
+		() => referenceData.typeStrengthCompatibilityMap,
+	);
+
+	/** Base drinks allowed for the currently selected strength; unrestricted if the strength has no compatibility entry. */
+	const availableBase = useCompatibilityFilter(
+		() => referenceData.base,
+		() => slugOf(referenceData.strengths, strength.value),
+		() => referenceData.strengthBaseCompatibilityMap,
+	);
 
 	function addIngredient() {
-		ingredients.value.push(makeIngredient('', ''));
+		ingredients.value.push(makeIngredientRow());
 	}
 
-	function removeIngredient(id: number) {
+	function removeIngredient(id: ItemId) {
 		ingredients.value = ingredients.value.filter((item) => item.id !== id);
 	}
 
@@ -97,7 +133,7 @@ export const useSommelierStore = defineStore('sommelier', () => {
 		cocktailType.value = null;
 		strength.value = null;
 		base.value = null;
-		ingredients.value = defaultIngredients();
+		ingredients.value = [];
 		portions.value = 2;
 		doublePortions.value = false;
 		cookingTime.value = 30;
@@ -133,6 +169,8 @@ export const useSommelierStore = defineStore('sommelier', () => {
 		shortDescription,
 		instructions,
 		availableCocktailTypes,
+		availableStrengths,
+		availableBase,
 		addIngredient,
 		removeIngredient,
 		toPayload,

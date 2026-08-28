@@ -1,21 +1,21 @@
 import { get, post } from '@/utils/http';
-import type { ListItem } from '@/types/ui';
+import type { IListItem } from '@/types/ui';
 
-export interface IngredientCatalogItem extends ListItem {
+export interface IIngredientCatalogItem extends IListItem {
     kind: 'ingredient' | 'garnish';
     defaultUnit: string;
 }
 
-export interface NewIngredient {
+export interface INewIngredient {
     name: string;
     kind?: 'ingredient' | 'garnish';
     defaultUnit?: string;
 }
 
 export const fetchIngredients = () => {
-    return get<IngredientCatalogItem[]>('/ingredients');
+    return get<IIngredientCatalogItem[]>('/ingredients');
 }
 
-export const createIngredient = (ingredient: NewIngredient) => {
-    return post<IngredientCatalogItem>('/ingredients', ingredient);
+export const createIngredient = (ingredient: INewIngredient) => {
+    return post<IIngredientCatalogItem>('/ingredients', ingredient);
 }

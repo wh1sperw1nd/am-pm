@@ -10,11 +10,7 @@
     "module": "ESNext",
     "target": "ES2022",
     "moduleResolution": "bundler",
-    "types": [],
-    // For nodejs:
-    // "lib": ["esnext"],
-    // "types": ["node"],
-    // and npm install -D @types/node
+    "types": ["node"],
 
     // Other Outputs
     "sourceMap": true,

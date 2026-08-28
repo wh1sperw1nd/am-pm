@@ -1,14 +1,18 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import SommelierView from '@/views/SommelierView.vue';
+import BaristaView from '@/views/BaristaView.vue';
 
-const routes = [
+const routes: RouteRecordRaw[] = [
     {
-        path: '/sommelier',
-        name: 'SommelierView.vue'
+        path: '/',
+        name: 'sommelier',
+        component: SommelierView
     },
     {
         path: '/barista',
-        name: 'BaristaView',
-    },
+        name: 'barista',
+        component: BaristaView
+    }
 ];
 
 const router = createRouter({

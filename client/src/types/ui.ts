@@ -1,8 +1,8 @@
 export type ItemId = string | number;
 
-export interface ListItem {
+export interface IListItem {
     id: ItemId;
-    label: string;
-    /** Optional secondary text shown on the right side of the row. */
+    name: string;
+    slug: string;
     hint?: string;
 }

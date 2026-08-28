@@ -13,7 +13,7 @@ const uid = useId();
     <ScrollList :items="items">
         <template #item="{ item }">
             <label :for="`${uid}-${item.id}`"
-                   class="p-3.5 flex gap-2 cursor-pointer items-center select-none hover:bg-gray-200"
+                   class="relative p-3.5 flex gap-2 cursor-pointer items-center select-none hover:bg-gray-200"
                    :class="selected.includes(item.id) ? 'bg-gray-200' : 'text-gray-700'">
                 <input
                         :id="`${uid}-${item.id}`"
@@ -27,7 +27,7 @@ const uid = useId();
 					<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
 				 </svg>
 				</span>
-                <span class="text-sm text-gray-600">{{ item.label }}</span>
+                <span class="text-sm text-gray-600">{{ item.name }}</span>
             </label>
         </template>
     </ScrollList>
