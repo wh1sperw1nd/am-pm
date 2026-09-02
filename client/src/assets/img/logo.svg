@@ -1,0 +1,55 @@
+<svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 130">
+    <style>
+        .text-primary {
+        font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+        font-weight: 800;
+        fill: #1A1A1A;
+        font-size: 4.5rem;
+        }
+
+        .text-sub {
+        font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+        font-weight: 500;
+        fill: #666666;
+        letter-spacing: 0.375rem;
+        font-size: 1.2em;
+        }
+
+        .line-art {
+        fill: none;
+        stroke: #1A1A1A;
+        stroke-width: 3.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        }
+
+        .wine-fill {
+        fill: #8B0000;
+        opacity: 0.85;
+        }
+
+        .coffee-fill {
+        fill: #6F4E37;
+        opacity: 0.85;
+        }
+
+        .accent-sun {
+        fill: #E67E22;
+        opacity: 0.15;
+        }
+
+        .accent-moon {
+        fill: #2C3E50;
+        opacity: 0.15;
+        }
+    </style>
+    <g transform="translate(168 55)" text-anchor="middle">
+        <text class="text-primary" font-size="72" x="0" y="0">AM
+            <tspan fill="#8B0000">:</tspan>
+            PM
+        </text>
+        <text class="text-sub" font-size="14" x="0" y="40">BARISTA &amp; SOMMELIER</text>
+        <line x1="-80" y1="65" x2="80" y2="65" stroke="#1A1A1A" stroke-width="1.5"></line>
+        <circle cx="0" cy="65" r="3" fill="#8B0000"></circle>
+    </g>
+</svg>

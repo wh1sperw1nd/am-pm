@@ -13,6 +13,7 @@ import TagsPanel from "@/components/TagsPanel.vue";
 import DescriptionPanel from "@/components/DescriptionPanel.vue";
 import { useSommelierStore } from "@/store/sommelier";
 import { useNotificationsStore } from "@/store/notifications";
+import Header from "@/components/common/Header.vue";
 
 const store = useSommelierStore();
 const notifications = useNotificationsStore();
@@ -30,7 +31,7 @@ function onClear() {
 </script>
 
 <template>
-    <h1 class="w-full text-4xl mb-6 mt-6 text-amber-500">Electronic sommelier</h1>
+    <Header />
     <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <GlassPanel/>
         <TypesPanel/>

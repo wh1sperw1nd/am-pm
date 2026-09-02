@@ -3,7 +3,7 @@ import { onMounted, ref, useId } from 'vue';
 import { storeToRefs } from 'pinia';
 import BaseCard from '@/components/common/BaseCard.vue';
 import { pluralize } from "@/utils/text.ts";
-import type { ListItem } from '@/types/ui';
+import type { IListItem } from '@/types/ui';
 import { useSommelierStore } from '@/store/sommelier';
 import { useReferenceDataStore } from '@/store/referenceData';
 
@@ -12,7 +12,7 @@ const glassImages = import.meta.glob<string>('../assets/img/glass/*.png', {
     import: 'default',
 });
 
-const glassSrc = (glass: ListItem) => glassImages[`../assets/img/glass/${glass.slug}.png`];
+const glassSrc = (glass: IListItem) => glassImages[`../assets/img/glass/${glass.slug}.png`];
 
 const store = useSommelierStore();
 const { glass: selected } = storeToRefs(store);
@@ -21,7 +21,7 @@ const referenceData = useReferenceDataStore();
 const { glasses } = storeToRefs(referenceData);
 
 const uid = useId();
-const slideId = (glass: ListItem) => `${uid}-${glass.slug}`;
+const slideId = (glass: IListItem) => `${uid}-${glass.slug}`;
 
 const track = ref<HTMLUListElement | null>(null);
 const atStart = ref(true);
