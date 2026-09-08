@@ -1,8 +1,9 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import type { IListItem } from '@/types/ui';
-import { GLASS_TYPES, COCKTAIL_TYPES, STRENGTHS, GLASS_TYPE_COMPATIBILITY } from '@/data/options';
+import { GLASS_TYPES, CUP_TYPES, COCKTAIL_TYPES, STRENGTHS, GLASS_TYPE_COMPATIBILITY } from '@/data/options';
 import { fetchGlasses } from '@/actions/glasses';
+import { fetchCups } from '@/actions/cups';
 import { fetchCocktailTypes } from '@/actions/cocktailTypes';
 import { fetchStrengths } from '@/actions/strength';
 import { fetchGlassTypeCompatibility } from '@/actions/glassTypeCompatibility';
@@ -31,6 +32,8 @@ function useFetchableList<T>(fallback: T, fetcher: () => Promise<T>, label: stri
 
 export const useReferenceDataStore = defineStore('referenceData', () => {
 	const { data: glasses, load: loadGlasses } = useFetchableList<IListItem[]>(GLASS_TYPES, fetchGlasses, 'glasses');
+
+	const { data: cups, load: loadCups } = useFetchableList<IListItem[]>(CUP_TYPES, fetchCups, 'cups');
 
 	const { data: cocktailTypes, load: loadCocktailTypes } = useFetchableList<IListItem[]>(COCKTAIL_TYPES, fetchCocktailTypes, 'cocktail types');
 
@@ -63,6 +66,7 @@ export const useReferenceDataStore = defineStore('referenceData', () => {
 
 	return {
 		glasses, loadGlasses,
+		cups, loadCups,
 		cocktailTypes, loadCocktailTypes,
 		strengths, loadStrengths,
 		glassTypeCompatibilityMap, loadGlassTypeCompatibility,

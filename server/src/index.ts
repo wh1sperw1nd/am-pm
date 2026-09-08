@@ -12,7 +12,8 @@ import {
 	methods,
 	recipes,
 	strengths, tags,
-	typeStrengthCompatibility
+	typeStrengthCompatibility,
+	cups
 } from './db/schema';
 
 const slugify = (name: string) =>
@@ -160,4 +161,9 @@ fastify.listen({ port: 3000 }, (err) => {
 		fastify.log.error(err);
 		process.exit(1);
 	}
+});
+
+
+fastify.get('/cups', async () => {
+	return db.select().from(cups);
 });

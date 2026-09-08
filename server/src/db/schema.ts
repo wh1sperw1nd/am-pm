@@ -76,3 +76,11 @@ export const recipes = pgTable('recipes', {
 	payload: jsonb('payload').notNull(),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 });
+
+
+
+export const cups = pgTable('cups', {
+	id: serial('id').primaryKey(),
+	slug: text('slug').notNull().unique(),
+	name: text('name').notNull(),
+});

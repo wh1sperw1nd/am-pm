@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import GlassPanel from "@/components/GlassPanel.vue";
+import VesselPanel from "@/components/VesselPanel.vue";
 import TypesPanel from "@/components/TypesPanel.vue";
 import StrengthPanel from "@/components/StrengthPanel.vue";
 import PortionsPanel from "@/components/PortionsPanel.vue";
@@ -12,11 +12,16 @@ import DecorationsPanel from "@/components/DecorationsPanel.vue";
 import TagsPanel from "@/components/TagsPanel.vue";
 import DescriptionPanel from "@/components/DescriptionPanel.vue";
 import { useSommelierStore } from "@/store/sommelier";
+import { useReferenceDataStore } from "@/store/referenceData";
 import { useNotificationsStore } from "@/store/notifications";
 import { createRecipe } from "@/actions/recipes";
 import Header from "@/components/common/Header.vue";
+import Footer from "@/components/common/Footer.vue";
+import { storeToRefs } from "pinia";
 
 const store = useSommelierStore();
+const referenceData = useReferenceDataStore();
+const { glasses } = storeToRefs(referenceData);
 const notifications = useNotificationsStore();
 
 async function onSave() {
@@ -44,7 +49,8 @@ function onClear() {
     <Header />
     <div class="flex flex-col p-4">
         <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <GlassPanel/>
+            <VesselPanel title="Glass type" :items="glasses" v-model="store.glass" image-folder="glass"
+                         unit-label="species" :load="referenceData.loadGlasses"/>
             <TypesPanel/>
             <StrengthPanel/>
             <BasePanel/>
@@ -73,6 +79,7 @@ function onClear() {
             </button>
         </section>
     </div>
+    <Footer />
 </template>
 
 <style scoped lang="scss">

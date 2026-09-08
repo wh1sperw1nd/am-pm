@@ -1,27 +1,39 @@
 <script setup lang="ts">
 import { onMounted, ref, useId } from 'vue';
-import { storeToRefs } from 'pinia';
 import BaseCard from '@/components/common/BaseCard.vue';
 import { pluralize } from "@/utils/text.ts";
-import type { IListItem } from '@/types/ui';
-import { useSommelierStore } from '@/store/sommelier';
-import { useReferenceDataStore } from '@/store/referenceData';
+import type { IListItem, ItemId } from '@/types/ui';
 
 const glassImages = import.meta.glob<string>('../assets/img/glass/*.png', {
     eager: true,
     import: 'default',
 });
+const cupImages = import.meta.glob<string>('../assets/img/cup/*.png', {
+    eager: true,
+    import: 'default',
+});
+const imagesByFolder = { glass: glassImages, cup: cupImages };
 
-const glassSrc = (glass: IListItem) => glassImages[`../assets/img/glass/${glass.slug}.png`];
+const {
+    title,
+    items,
+    imageFolder,
+    unitLabel = 'type',
+    load,
+} = defineProps<{
+    title: string;
+    items: IListItem[];
+    imageFolder: 'glass' | 'cup';
+    unitLabel?: string;
+    load?: () => Promise<void>;
+}>();
 
-const store = useSommelierStore();
-const { glass: selected } = storeToRefs(store);
+const selected = defineModel<ItemId | null>();
 
-const referenceData = useReferenceDataStore();
-const { glasses } = storeToRefs(referenceData);
+const vesselSrc = (item: IListItem) => imagesByFolder[imageFolder][`../assets/img/${imageFolder}/${item.slug}.png`];
 
 const uid = useId();
-const slideId = (glass: IListItem) => `${uid}-${glass.slug}`;
+const slideId = (item: IListItem) => `${uid}-${item.slug}`;
 
 const track = ref<HTMLUListElement | null>(null);
 const atStart = ref(true);
@@ -48,14 +60,14 @@ function step(direction: 1 | -1) {
 }
 
 onMounted(async () => {
-    await referenceData.loadGlasses();
+    await load?.();
     updateEdges();
 });
 
 </script>
 
 <template>
-    <BaseCard title="Glass type" :description="pluralize(glasses.length, 'species')" class="max-h-96"
+    <BaseCard :title="title" :description="pluralize(items.length, unitLabel)" class="max-h-96"
               content-class="h-72">
         <div class="relative h-full">
             <!-- track: native scroll + snap -->
@@ -64,24 +76,24 @@ onMounted(async () => {
                     class="track flex h-full gap-3 snap-x snap-mandatory scroll-smooth overflow-x-auto overflow-y-hidden"
                     @scroll.passive="updateEdges"
             >
-                <li v-for="glass in glasses" :key="glass.slug" :id="slideId(glass)"
+                <li v-for="item in items" :key="item.slug" :id="slideId(item)"
                     class="snap-start shrink-0 w-full">
                     <label
                             class="group relative flex h-full w-full cursor-pointer flex-col items-center overflow-hidden"
                     >
-                        <input type="radio" class="sr-only" :name="uid" :value="glass.slug" v-model="selected"/>
-                        <img class="flex-1" width="256" height="256" :src="glassSrc(glass)" :alt="glass.name"
+                        <input type="radio" class="sr-only" :name="uid" :value="item.slug" v-model="selected"/>
+                        <img class="flex-1" width="256" height="256" :src="vesselSrc(item)" :alt="item.name"
                              aria-hidden="true"/>
                         <span
                                 class="p-3 border-t w-full text-center border-gray-200 transition-colors group-has-checked:bg-blue-600 group-has-checked:text-white"
-                        >{{ glass.name }}</span>
+                        >{{ item.name }}</span>
                     </label>
                 </li>
             </ul>
 
             <button
                     type="button"
-                    aria-label="Previous glass"
+                    aria-label="Previous"
                     :disabled="atStart"
                     class="absolute cursor-pointer  top-1/2 left-1 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-gray-700 shadow-md transition hover:bg-white disabled:pointer-events-none disabled:opacity-0"
                     @click="step(-1)"
@@ -94,7 +106,7 @@ onMounted(async () => {
 
             <button
                     type="button"
-                    aria-label="Next glass"
+                    aria-label="Next"
                     :disabled="atEnd"
                     class="absolute cursor-pointer top-1/2 right-1 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-gray-700 shadow-md transition hover:bg-white disabled:pointer-events-none disabled:opacity-0"
                     @click="step(1)"
