@@ -7,10 +7,10 @@ import ThemeToggle from '@/components/common/ThemeToggle.vue';
         <router-link to="/" class="logo">
             <svg class="logo-text" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 130">
                 <g transform="translate(168 55)" text-anchor="middle">
-                    <text class="text-primary" font-size="72" x="0" y="0">AM<tspan fill="#8B0000">:</tspan>PM</text>
+                    <text class="text-primary" font-size="72" x="0" y="0">AM<tspan class="fill-red-900">:</tspan>PM</text>
                     <text class="text-sub" font-size="14" x="0" y="40">BARISTA &amp; SOMMELIER</text>
-                    <line class="line" x1="-80" y1="65" x2="80" y2="65" stroke="#1A1A1A" stroke-width="1.5"></line>
-                    <circle cx="0" cy="65" r="3" fill="#8B0000"></circle>
+                    <line class="line stroke-neutral-900" x1="-80" y1="65" x2="80" y2="65" stroke-width="1.5"></line>
+                    <circle class="fill-red-900" cx="0" cy="65" r="3"></circle>
                 </g>
             </svg>
         </router-link>
@@ -71,9 +71,10 @@ import ThemeToggle from '@/components/common/ThemeToggle.vue';
             </svg>-->
         <nav class="menu flex">
             <ul class="flex gap-4 items-center uppercase">
-                <li class="flex"><router-link to="/sommelier">Sommelier</router-link></li>
-                <li class="flex"><router-link to="/barista">Barista</router-link></li>
-                <li class="flex"><router-link to="/recipes">Recipes</router-link></li>
+                <li class="flex"><router-link to="/sommelier" class="nav-link">Sommelier</router-link></li>
+                <li class="flex"><router-link to="/barista" class="nav-link">Barista</router-link></li>
+                <li class="flex"><router-link to="/recipes" class="nav-link">Recipes</router-link></li>
+                <li class="flex"><router-link to="/about" class="nav-link">Our story</router-link></li>
                 <li class="flex"><ThemeToggle/></li>
             </ul>
         </nav>
@@ -99,44 +100,78 @@ import ThemeToggle from '@/components/common/ThemeToggle.vue';
 .text-primary {
     font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
     font-weight: 800;
-    fill: #1A1A1A;
+    fill: var(--color-neutral-900);
     font-size: 4.5rem;
 }
 
 .text-sub {
     font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
     font-weight: 500;
-    fill: #666666;
+    fill: var(--color-gray-500);
     letter-spacing: 0.375rem;
     font-size: 1.2em;
 }
 
 .line-art {
     fill: none;
-    stroke: #1A1A1A;
+    stroke: var(--color-neutral-900);
     stroke-width: 3.5;
     stroke-linecap: round;
     stroke-linejoin: round;
 }
 
 .wine-fill {
-    fill: #8B0000;
+    fill: var(--color-red-900);
     opacity: 0.85;
 }
 
 .coffee-fill {
-    fill: #6F4E37;
+    fill: var(--color-stone-600);
     opacity: 0.85;
 }
 
 .accent-sun {
-    fill: #E67E22;
+    fill: var(--color-orange-500);
     opacity: 0.15;
 }
 
 .accent-moon {
-    fill: #2C3E50;
+    fill: var(--color-slate-700);
     opacity: 0.15;
+}
+
+.nav-link {
+    position: relative;
+    padding-bottom: 0.25rem;
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: var(--color-red-900);
+    }
+
+    &:hover::after {
+        right: 0;
+    }
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 100%;
+    bottom: 0;
+    height: 2px;
+    background-color: var(--color-red-900);
+    transition: right 0.2s ease;
+}
+
+.nav-link.router-link-exact-active {
+    color: var(--color-red-900);
+    font-weight: 700;
+}
+
+.nav-link.router-link-exact-active::after {
+    right: 0;
 }
 
 html.dark {
@@ -149,16 +184,22 @@ html.dark {
         background-color: var(--color-gray-950);
     }
 
-    .text-primary {
-        fill: #fff;
-    }
-
+    .text-primary,
     .text-sub {
-        fill: #fff;
+        fill: var(--color-white);
     }
 
     .line {
-        stroke: #fff;
+        stroke: var(--color-white);
+    }
+
+    .nav-link.router-link-exact-active,
+    .nav-link:hover {
+        color: var(--color-white);
+    }
+
+    .nav-link.router-link-exact-active::after {
+        background-color: var(--color-white);
     }
 }
 

@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
-import type { ListItem } from '@/types/ui';
+import type { IListItem } from '@/types/ui';
 import { GLASS_TYPES, COCKTAIL_TYPES, STRENGTHS, GLASS_TYPE_COMPATIBILITY } from '@/data/options';
 import { fetchGlasses } from '@/actions/glasses';
 import { fetchCocktailTypes } from '@/actions/cocktailTypes';
@@ -12,7 +12,8 @@ import { fetchBaseDrinks } from "@/actions/baseDrinks.ts";
 import { fetchMethods } from "@/actions/methods.ts";
 import { fetchTags } from "@/actions/tags.ts";
 import { fetchDecorations } from "@/actions/decorations.ts";
-import { fetchIngredients, createIngredient as createIngredientRequest, type IngredientCatalogItem, type NewIngredient } from "@/actions/Ingredients.ts";
+import { fetchIngredients, createIngredient as createIngredientRequest, type IIngredientCatalogItem, type INewIngredient } from "@/actions/Ingredients.ts";
+import { fetchRecipes, type IRecipe } from "@/actions/recipes";
 
 function useFetchableList<T>(fallback: T, fetcher: () => Promise<T>, label: string) {
 	const data = ref<T>(fallback);
@@ -29,24 +30,26 @@ function useFetchableList<T>(fallback: T, fetcher: () => Promise<T>, label: stri
 }
 
 export const useReferenceDataStore = defineStore('referenceData', () => {
-	const { data: glasses, load: loadGlasses } = useFetchableList<ListItem[]>(GLASS_TYPES, fetchGlasses, 'glasses');
+	const { data: glasses, load: loadGlasses } = useFetchableList<IListItem[]>(GLASS_TYPES, fetchGlasses, 'glasses');
 
-	const { data: cocktailTypes, load: loadCocktailTypes } = useFetchableList<ListItem[]>(COCKTAIL_TYPES, fetchCocktailTypes, 'cocktail types');
+	const { data: cocktailTypes, load: loadCocktailTypes } = useFetchableList<IListItem[]>(COCKTAIL_TYPES, fetchCocktailTypes, 'cocktail types');
 
-	const { data: strengths, load: loadStrengths } = useFetchableList<ListItem[]>(STRENGTHS, fetchStrengths, 'strengths');
+	const { data: strengths, load: loadStrengths } = useFetchableList<IListItem[]>(STRENGTHS, fetchStrengths, 'strengths');
 
-	const { data: base, load: loadBaseDrinks } = useFetchableList<ListItem[]>([], fetchBaseDrinks, 'base drinks');
+	const { data: base, load: loadBaseDrinks } = useFetchableList<IListItem[]>([], fetchBaseDrinks, 'base drinks');
 
-	const { data: methods, load: loadMethods } = useFetchableList<ListItem[]>([], fetchMethods, 'methods');
+	const { data: methods, load: loadMethods } = useFetchableList<IListItem[]>([], fetchMethods, 'methods');
 
-	const { data: tags, load: loadTags } = useFetchableList<ListItem[]>([], fetchTags, 'tags');
+	const { data: tags, load: loadTags } = useFetchableList<IListItem[]>([], fetchTags, 'tags');
 
-	const { data: decorations, load: loadDecorations } = useFetchableList<ListItem[]>([], fetchDecorations, 'decorations');
+	const { data: decorations, load: loadDecorations } = useFetchableList<IListItem[]>([], fetchDecorations, 'decorations');
 
-	const { data: ingredients, load: loadIngredients } = useFetchableList<IngredientCatalogItem[]>([], fetchIngredients, 'ingredients');
+	const { data: ingredients, load: loadIngredients } = useFetchableList<IIngredientCatalogItem[]>([], fetchIngredients, 'ingredients');
+
+	const { data: recipes, load: loadRecipes } = useFetchableList<IRecipe[]>([], fetchRecipes, 'recipes');
 
 	/** Creates a new catalog ingredient on the server and appends it to the loaded list. */
-	async function createIngredient(ingredient: NewIngredient) {
+	async function createIngredient(ingredient: INewIngredient) {
 		const created = await createIngredientRequest(ingredient);
 		ingredients.value.push(created);
 		return created;
@@ -70,5 +73,6 @@ export const useReferenceDataStore = defineStore('referenceData', () => {
 		tags, loadTags,
 		decorations, loadDecorations,
 		ingredients, loadIngredients, createIngredient,
+		recipes, loadRecipes,
 	};
 });

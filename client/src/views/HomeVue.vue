@@ -5,7 +5,7 @@ import Footer from "@/components/common/Footer.vue";
 </script>
 
 <template>
-    <div class="flex h-dvh min-h-[440px] flex-col">
+    <div class="flex h-dvh min-h-110 flex-col">
         <Header />
         <Hero />
     </div>

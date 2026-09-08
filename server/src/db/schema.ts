@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, primaryKey, check } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, integer, primaryKey, check, jsonb, timestamp } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 export const glasses = pgTable('glasses', {
@@ -69,3 +69,10 @@ export const ingredients = pgTable('ingredients', {
 	check('ingredients_kind_check', sql`${table.kind} IN ('ingredient', 'garnish')`),
 	check('ingredients_default_unit_check', sql`${table.defaultUnit} IN ('g', 'kg', 'ml', 'l', 'cl', 'oz', 'tbsp', 'tsp', 'dash', 'pc')`),
 ]);
+
+export const recipes = pgTable('recipes', {
+	id: serial('id').primaryKey(),
+	name: text('name').notNull(),
+	payload: jsonb('payload').notNull(),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+});

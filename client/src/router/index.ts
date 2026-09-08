@@ -3,6 +3,7 @@ import SommelierView from '@/views/SommelierView.vue';
 import BaristaView from '@/views/BaristaView.vue';
 import HomeVue from "@/views/HomeVue.vue";
 import AboutView from "@/views/AboutView.vue";
+import RecipesView from "@/views/RecipesView.vue";
 
 const routes: RouteRecordRaw[] = [
     {
@@ -22,8 +23,13 @@ const routes: RouteRecordRaw[] = [
     },
     {
         path: '/about',
-        name: 'about',
+        name: 'Our story',
         component: AboutView
+    },
+    {
+        path: '/recipes',
+        name: 'recipes',
+        component: RecipesView
     }
 ];
 

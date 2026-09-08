@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { db } from './db';
 import {
 	baseDrinks,
@@ -10,6 +10,7 @@ import {
 	glassTypeCompatibility,
 	ingredients,
 	methods,
+	recipes,
 	strengths, tags,
 	typeStrengthCompatibility
 } from './db/schema';
@@ -128,6 +129,31 @@ fastify.get('/strength-base-compatibility', async () => {
 	}
 	return map;
 });
+
+fastify.get('/recipes', async () => {
+	return db.select().from(recipes).orderBy(desc(recipes.createdAt));
+});
+
+fastify.post<{ Body: { description?: { name?: string } } & Record<string, unknown> }>(
+	'/recipes',
+	async (request, reply) => {
+		const payload = request.body;
+		const name = payload.description?.name?.trim();
+
+		if (!name) {
+			await reply.code(400);
+			return { message: 'description.name is required' };
+		}
+
+		const [created] = await db
+			.insert(recipes)
+			.values({ name, payload })
+			.returning();
+
+		await reply.code(201);
+		return created;
+	},
+);
 
 fastify.listen({ port: 3000 }, (err) => {
 	if (err) {

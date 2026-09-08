@@ -13,15 +13,25 @@ import TagsPanel from "@/components/TagsPanel.vue";
 import DescriptionPanel from "@/components/DescriptionPanel.vue";
 import { useSommelierStore } from "@/store/sommelier";
 import { useNotificationsStore } from "@/store/notifications";
+import { createRecipe } from "@/actions/recipes";
 import Header from "@/components/common/Header.vue";
 
 const store = useSommelierStore();
 const notifications = useNotificationsStore();
 
-function onSave() {
-    // TODO: send store.toPayload() to the backend once it exists.
-    console.log(store.toPayload());
-    notifications.notify('success', 'Cocktail saved.');
+async function onSave() {
+    if (!store.name.trim()) {
+        notifications.notify('error', 'Give the cocktail a name before saving.');
+        return;
+    }
+
+    try {
+        await createRecipe(store.toPayload());
+        notifications.notify('success', 'Cocktail saved.');
+    } catch (error) {
+        console.error('Error saving recipe:', error);
+        notifications.notify('error', "Couldn't save the cocktail.");
+    }
 }
 
 function onClear() {
@@ -32,37 +42,37 @@ function onClear() {
 
 <template>
     <Header />
-    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <GlassPanel/>
-        <TypesPanel/>
-        <StrengthPanel/>
-        <BasePanel/>
-    </section>
-
-    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-6 mt-6 lg:max-h-96">
-        <IngredientsPanel/>
-        <PortionsPanel/>
-        <TimePanel/>
-        <ComplexityPanel/>
-        <MethodPanel/>
-    </section>
-
-    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-        <DecorationsPanel/>
-        <TagsPanel/>
-        <DescriptionPanel/>
-    </section>
-    <section class="grid grid-cols-2 gap-6 p-6 ">
-        <button
-                class="bg-gray-200 border-gray-400 border text-black px-4 py-2 rounded hover:bg-gray-300 w-1/4 justify-self-end cursor-pointer font-bold"
-                @click="onClear">
-            Clear
-        </button>
-        <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-1/4 cursor-pointer font-bold"
-                @click="onSave">
-            Save
-        </button>
-    </section>
+    <div class="flex flex-col p-4">
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <GlassPanel/>
+            <TypesPanel/>
+            <StrengthPanel/>
+            <BasePanel/>
+        </section>
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-6 mt-6 lg:max-h-96">
+            <IngredientsPanel/>
+            <PortionsPanel/>
+            <TimePanel/>
+            <ComplexityPanel/>
+            <MethodPanel/>
+        </section>
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+            <DecorationsPanel/>
+            <TagsPanel/>
+            <DescriptionPanel/>
+        </section>
+        <section class="grid grid-cols-2 gap-6 p-6 ">
+            <button
+                    class="bg-gray-200 border-gray-400 border text-black px-4 py-2 rounded hover:bg-gray-300 w-1/4 justify-self-end cursor-pointer font-bold"
+                    @click="onClear">
+                Clear
+            </button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-1/4 cursor-pointer font-bold"
+                    @click="onSave">
+                Save
+            </button>
+        </section>
+    </div>
 </template>
 
 <style scoped lang="scss">
