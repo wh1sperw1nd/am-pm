@@ -4,12 +4,10 @@ import { pluralize } from "@/utils/text.ts";
 import BaseCard from "@/components/common/BaseCard.vue";
 import CheckList from "@/components/common/CheckList.vue";
 import { storeToRefs } from 'pinia';
-import { useSommelierStore } from '@/store/sommelier';
 import { useReferenceDataStore } from "@/store/referenceData.ts";
+import type { ItemId } from '@/types/ui.ts';
 
-
-const store = useSommelierStore();
-const { decorations: selectedDecorations } = storeToRefs(store);
+const selectedDecorations = defineModel<ItemId[]>({ default: (): ItemId[] => [] });
 
 const referenceData = useReferenceDataStore();
 const { decorations } = storeToRefs(referenceData);

@@ -65,6 +65,7 @@ export const ingredients = pgTable('ingredients', {
 	name: text('name').notNull(),
 	kind: text('kind').notNull().default('ingredient'),
 	defaultUnit: text('default_unit').notNull().default('g'),
+	defaultAmount: text('default_amount'),
 }, (table) => [
 	check('ingredients_kind_check', sql`${table.kind} IN ('ingredient', 'garnish')`),
 	check('ingredients_default_unit_check', sql`${table.defaultUnit} IN ('g', 'kg', 'ml', 'l', 'cl', 'oz', 'tbsp', 'tsp', 'dash', 'pc')`),
@@ -84,3 +85,22 @@ export const cups = pgTable('cups', {
 	slug: text('slug').notNull().unique(),
 	name: text('name').notNull(),
 });
+
+export const coffeeTypes = pgTable('coffee_types', {
+	id: serial('id').primaryKey(),
+	slug: text('slug').notNull().unique(),
+	name: text('name').notNull(),
+});
+
+export const coffeeMethods = pgTable('coffee_methods', {
+	id: serial('id').primaryKey(),
+	slug: text('slug').notNull().unique(),
+	name: text('name').notNull(),
+});
+
+export const cupTypeCompatibility = pgTable('cup_type_compatibility', {
+	cupId: integer('cup_id').notNull().references(() => cups.id, { onDelete: 'cascade' }),
+	typeId: integer('type_id').notNull().references(() => coffeeTypes.id, { onDelete: 'cascade' }),
+}, (table) => [
+	primaryKey({ columns: [table.cupId, table.typeId] }),
+]);

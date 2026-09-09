@@ -13,7 +13,10 @@ import {
 	recipes,
 	strengths, tags,
 	typeStrengthCompatibility,
-	cups
+	cups,
+	coffeeTypes,
+	coffeeMethods,
+	cupTypeCompatibility
 } from './db/schema';
 
 const slugify = (name: string) =>
@@ -27,6 +30,7 @@ const fastify = Fastify({ logger: true });
 
 await fastify.register(cors, {
 	origin: 'http://localhost:5173',
+	methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
 });
 
 fastify.get('/glasses', async () => {
@@ -61,23 +65,67 @@ fastify.get('/ingredients', async () => {
 	return db.select().from(ingredients);
 });
 
-fastify.post<{ Body: { name: string; kind?: 'ingredient' | 'garnish'; defaultUnit?: string } }>(
+fastify.post<{ Body: { name: string; kind?: 'ingredient' | 'garnish'; defaultUnit?: string; defaultAmount?: string } }>(
 	'/ingredients',
 	async (request, reply) => {
-		const { name, kind, defaultUnit } = request.body;
+		const { name, kind, defaultUnit, defaultAmount } = request.body;
 
 		if (!name?.trim()) {
 			await reply.code(400);
 			return { message: 'name is required' };
 		}
 
-		const [created] = await db
-			.insert(ingredients)
-			.values({ slug: slugify(name), name: name.trim(), kind, defaultUnit })
+		const slug = slugify(name);
+
+		try {
+			const [created] = await db
+				.insert(ingredients)
+				.values({ slug, name: name.trim(), kind, defaultUnit, defaultAmount })
+				.returning();
+
+			await reply.code(201);
+			return created;
+		} catch (error) {
+			// Two near-simultaneous requests for the same new name can both miss the
+			// client's local catalog cache and race to insert the same slug; treat a
+			// unique-constraint hit as "already exists" and hand back that row instead of erroring.
+			if (error instanceof Error && error.message.includes('ingredients_slug_unique')) {
+				const [existing] = await db.select().from(ingredients).where(eq(ingredients.slug, slug));
+				if (existing) return existing;
+			}
+			throw error;
+		}
+	},
+);
+
+fastify.patch<{ Params: { id: string }; Body: { name?: string; kind?: 'ingredient' | 'garnish'; defaultUnit?: string; defaultAmount?: string } }>(
+	'/ingredients/:id',
+	async (request, reply) => {
+		const id = Number(request.params.id);
+		const { name, kind, defaultUnit, defaultAmount } = request.body;
+
+		if (name !== undefined && !name.trim()) {
+			await reply.code(400);
+			return { message: 'name cannot be empty' };
+		}
+
+		const [updated] = await db
+			.update(ingredients)
+			.set({
+				...(name !== undefined && { name: name.trim(), slug: slugify(name) }),
+				...(kind !== undefined && { kind }),
+				...(defaultUnit !== undefined && { defaultUnit }),
+				...(defaultAmount !== undefined && { defaultAmount }),
+			})
+			.where(eq(ingredients.id, id))
 			.returning();
 
-		await reply.code(201);
-		return created;
+		if (!updated) {
+			await reply.code(404);
+			return { message: 'ingredient not found' };
+		}
+
+		return updated;
 	},
 );
 
@@ -166,4 +214,29 @@ fastify.listen({ port: 3000 }, (err) => {
 
 fastify.get('/cups', async () => {
 	return db.select().from(cups);
+});
+
+fastify.get('/coffee-types', async () => {
+	return db.select().from(coffeeTypes);
+});
+
+fastify.get('/coffee-methods', async () => {
+	return db.select().from(coffeeMethods);
+});
+
+fastify.get('/cup-type-compatibility', async () => {
+	const rows = await db
+		.select({
+			cupSlug: cups.slug,
+			typeSlug: coffeeTypes.slug,
+		})
+		.from(cupTypeCompatibility)
+		.innerJoin(cups, eq(cupTypeCompatibility.cupId, cups.id))
+		.innerJoin(coffeeTypes, eq(cupTypeCompatibility.typeId, coffeeTypes.id));
+
+	const map: Record<string, string[]> = {};
+	for (const row of rows) {
+		(map[row.cupSlug] ??= []).push(row.typeSlug);
+	}
+	return map;
 });

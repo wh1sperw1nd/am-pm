@@ -3,32 +3,38 @@ import { onMounted, watch } from 'vue';
 import { pluralize } from "@/utils/text.ts";
 import BaseCard from "@/components/common/BaseCard.vue";
 import OptionList from "@/components/common/OptionList.vue";
-import { storeToRefs } from 'pinia';
-import { useSommelierStore } from '@/store/sommelier';
-import { useReferenceDataStore } from '@/store/referenceData';
+import type { IListItem, ItemId } from '@/types/ui';
 
-const store = useSommelierStore();
-const { strength: selectedStrength, availableStrengths } = storeToRefs(store);
+const {
+    title = 'Strength',
+    items,
+    unitLabel = 'strength',
+    load,
+} = defineProps<{
+    title?: string;
+    items: IListItem[];
+    unitLabel?: string;
+    load?: () => Promise<void> | void;
+}>();
 
-const referenceData = useReferenceDataStore();
+const selected = defineModel<ItemId | null>({ default: null });
 
-watch(availableStrengths, (items) => {
-    if (selectedStrength.value !== null && !items.some((item) => item.id === selectedStrength.value)) {
-        selectedStrength.value = null;
+watch(() => items, (available) => {
+    if (selected.value !== null && !available.some((item) => item.id === selected.value)) {
+        selected.value = null;
     }
 });
 
 onMounted(() => {
-    referenceData.loadStrengths();
-    referenceData.loadTypeStrengthCompatibility();
+    load?.();
 });
 
 </script>
 
 <template>
-    <BaseCard title="Strength" :description="pluralize(availableStrengths.length, 'strength')" class="max-h-96"
+    <BaseCard :title="title" :description="pluralize(items.length, unitLabel)" class="max-h-96"
               content-class="h-72">
-        <OptionList v-model="selectedStrength" :items="availableStrengths"/>
+        <OptionList v-model="selected" :items="items"/>
     </BaseCard>
 </template>
 

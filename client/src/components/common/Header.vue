@@ -198,7 +198,8 @@ html.dark {
         color: var(--color-white);
     }
 
-    .nav-link.router-link-exact-active::after {
+    .nav-link.router-link-exact-active::after,
+    .nav-link:hover::after {
         background-color: var(--color-white);
     }
 }

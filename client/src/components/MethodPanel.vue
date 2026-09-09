@@ -1,28 +1,38 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import { pluralize } from "@/utils/text.ts";
 import OptionList from "@/components/common/OptionList.vue";
 import BaseCard from "@/components/common/BaseCard.vue";
-import { storeToRefs } from 'pinia';
-import { useSommelierStore } from '@/store/sommelier';
-import { METHODS } from '@/data/options';
-import { useReferenceDataStore } from "@/store/referenceData.ts";
+import type { IListItem, ItemId } from '@/types/ui';
 
-const store = useSommelierStore();
-const { method: selectedMethod } = storeToRefs(store);
+const {
+    title = 'Method',
+    items,
+    unitLabel = 'method',
+    load,
+} = defineProps<{
+    title?: string;
+    items: IListItem[];
+    unitLabel?: string;
+    load?: () => Promise<void> | void;
+}>();
 
-const referenceData = useReferenceDataStore();
-const { methods } = storeToRefs(referenceData);
+const selected = defineModel<ItemId | null>({ default: null });
 
-onMounted(() => {
-    referenceData.loadMethods();
+watch(() => items, (available) => {
+    if (selected.value !== null && !available.some((item) => item.id === selected.value)) {
+        selected.value = null;
+    }
 });
 
+onMounted(() => {
+    load?.();
+});
 </script>
 
 <template>
-    <BaseCard title="Method" :description="pluralize(METHODS.length, 'method')" variant="accent" content-class="h-40">
-        <OptionList v-model="selectedMethod" :items="methods"/>
+    <BaseCard :title="title" :description="pluralize(items.length, unitLabel)" variant="accent" content-class="h-40">
+        <OptionList v-model="selected" :items="items"/>
     </BaseCard>
 </template>
 

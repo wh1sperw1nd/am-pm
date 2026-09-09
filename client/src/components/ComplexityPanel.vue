@@ -2,10 +2,9 @@
 import BaseCard from "@/components/common/BaseCard.vue";
 import GradientScale from "@/components/common/GradientScale.vue";
 import CheckboxField from "@/components/common/CheckboxField.vue";
-import { storeToRefs } from 'pinia';
-import { useSommelierStore } from '@/store/sommelier';
 
-const { complexity, uncategorized } = storeToRefs(useSommelierStore());
+const complexity = defineModel<number>('complexity', { default: 1 });
+const uncategorized = defineModel<boolean>('uncategorized', { default: true });
 </script>
 
 <template>

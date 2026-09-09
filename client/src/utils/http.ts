@@ -29,6 +29,15 @@ export async function post<T>(url: string, body?: unknown): Promise<T> {
 	}
 }
 
+export async function patch<T>(url: string, body?: unknown): Promise<T> {
+	try {
+		const response = await http.patch<T>(url, body);
+		return response.data;
+	} catch (error) {
+		handleError(error);
+	}
+}
+
 export async function del<T>(url: string): Promise<T> {
 	try {
 		const response = await http.delete<T>(url);

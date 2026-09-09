@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import {computed, ref, useId} from "vue";
 import BaseCard from "@/components/common/BaseCard.vue";
-import {storeToRefs} from 'pinia';
-import {useSommelierStore} from '@/store/sommelier';
 
 const uid = useId();
 
@@ -15,7 +13,10 @@ const tabs: { id: Tab; label: string }[] = [
 	{id: INSTRUCTIONS, label: 'Preparation instructions'},
 ];
 
-const {name, altNames, shortDescription, instructions} = storeToRefs(useSommelierStore());
+const name = defineModel<string>('name', { default: '' });
+const altNames = defineModel<string>('altNames', { default: '' });
+const shortDescription = defineModel<string>('shortDescription', { default: '' });
+const instructions = defineModel<string>('instructions', { default: '' });
 
 const activeTab = ref<Tab>(SHORT_DESCRIPTION);
 const activeText = computed({

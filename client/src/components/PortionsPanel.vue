@@ -2,11 +2,10 @@
 import BaseCard from "@/components/common/BaseCard.vue";
 import TickScale from "@/components/common/TickScale.vue";
 import CheckboxField from "@/components/common/CheckboxField.vue";
-import { storeToRefs } from 'pinia';
-import { useSommelierStore } from '@/store/sommelier';
 import { PORTION_VALUES } from '@/data/options';
 
-const { portions, doublePortions } = storeToRefs(useSommelierStore());
+const portions = defineModel<number>('portions', { default: PORTION_VALUES[0] });
+const doublePortions = defineModel<boolean>('doublePortions', { default: false });
 </script>
 
 <template>

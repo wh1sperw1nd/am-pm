@@ -3,31 +3,37 @@ import { onMounted, watch } from 'vue';
 import { pluralize } from "@/utils/text.ts";
 import BaseCard from "@/components/common/BaseCard.vue";
 import OptionList from "@/components/common/OptionList.vue";
-import { storeToRefs } from 'pinia';
-import { useSommelierStore } from '@/store/sommelier';
-import { useReferenceDataStore } from "@/store/referenceData.ts";
+import type { IListItem, ItemId } from '@/types/ui';
 
-const store = useSommelierStore();
-const { base: selectedDrinkType, availableBase } = storeToRefs(store);
+const {
+    title = 'Base',
+    items,
+    unitLabel = 'drink',
+    load,
+} = defineProps<{
+    title?: string;
+    items: IListItem[];
+    unitLabel?: string;
+    load?: () => Promise<void> | void;
+}>();
 
-const referenceData = useReferenceDataStore();
+const selected = defineModel<ItemId | null>({ default: null });
 
-watch(availableBase, (items) => {
-    if (selectedDrinkType.value !== null && !items.some((item) => item.id === selectedDrinkType.value)) {
-        selectedDrinkType.value = null;
+watch(() => items, (available) => {
+    if (selected.value !== null && !available.some((item) => item.id === selected.value)) {
+        selected.value = null;
     }
 });
 
 onMounted(() => {
-    referenceData.loadBaseDrinks();
-    referenceData.loadStrengthBaseCompatibility();
+    load?.();
 });
 
 </script>
 
 <template>
-    <BaseCard title="Base" :description="pluralize(availableBase.length, 'drink')" class="max-h-96" content-class="h-72">
-        <OptionList v-model="selectedDrinkType" :items="availableBase"/>
+    <BaseCard :title="title" :description="pluralize(items.length, unitLabel)" class="max-h-96" content-class="h-72">
+        <OptionList v-model="selected" :items="items"/>
     </BaseCard>
 </template>
 

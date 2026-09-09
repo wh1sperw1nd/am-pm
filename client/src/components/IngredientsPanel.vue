@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import BaseCard from "@/components/common/BaseCard.vue";
 import ScrollList from "@/components/common/ScrollList.vue";
 import { storeToRefs } from 'pinia';
-import { useSommelierStore, UNITS } from '@/store/sommelier';
-import type { IngredientKind, RecipeIngredient } from '@/store/sommelier';
+import { UNITS, makeIngredientRow, type IngredientKind, type IRecipeIngredient } from '@/types/ingredients';
 import { useReferenceDataStore } from '@/store/referenceData';
 import { useNotificationsStore } from '@/store/notifications';
+import type { IIngredientCatalogItem } from '@/actions/Ingredients';
 
-const store = useSommelierStore();
-const { ingredients } = storeToRefs(store);
+const ingredients = defineModel<IRecipeIngredient[]>({ default: (): IRecipeIngredient[] => [] });
 
 const referenceData = useReferenceDataStore();
 const { ingredients: catalog } = storeToRefs(referenceData);
 
 const notifications = useNotificationsStore();
+
+/** Id of the row whose name-suggestions dropdown is currently open, if any. */
+const openSuggestionsFor = ref<IRecipeIngredient['id'] | null>(null);
 
 onMounted(() => {
     referenceData.loadIngredients();
@@ -26,7 +28,7 @@ onMounted(() => {
  * up there typed only as `{ id: ItemId }`. Going through our own already-typed `ingredients`
  * array sidesteps that IDE limitation (vue-tsc has always inferred `item` correctly).
  */
-const rowAt = (index: number): RecipeIngredient => ingredients.value[index];
+const rowAt = (index: number): IRecipeIngredient => ingredients.value[index];
 
 const textColor = (kind: IngredientKind) => (kind === 'garnish' ? 'text-rose-500' : 'text-blue-600');
 
@@ -36,13 +38,38 @@ function onAmountInput(item: { amount: string }, event: Event) {
     item.amount = raw.replace(/[^0-9.,]/g, '').replace(',', '.');
 }
 
-/** If the typed name isn't in the catalog yet, add it there too, so it's remembered for next time. */
-async function onNameBlur(item: RecipeIngredient) {
+/** Catalog entries whose name contains the typed text, for the suggestion dropdown. */
+function matchingCatalog(name: string): IIngredientCatalogItem[] {
+    const query = name.trim().toLowerCase();
+    if (!query) return [];
+    return catalog.value.filter((entry) => entry.name.toLowerCase().includes(query)).slice(0, 8);
+}
+
+/** Fills a row in from a picked catalog entry and closes the suggestion dropdown. */
+function selectCatalogEntry(item: IRecipeIngredient, entry: IIngredientCatalogItem) {
+    item.name = entry.name;
+    item.kind = entry.kind;
+    if ((UNITS as readonly string[]).includes(entry.defaultUnit)) {
+        item.unit = entry.defaultUnit as IRecipeIngredient['unit'];
+    }
+    openSuggestionsFor.value = null;
+}
+
+/** If the typed name matches a catalog entry, reuse its kind/unit; otherwise add it to the catalog for next time. */
+async function onNameBlur(item: IRecipeIngredient) {
+    openSuggestionsFor.value = null;
+
     const name = item.name.trim();
     if (!name) return;
 
-    const exists = catalog.value.some((entry) => entry.name.toLowerCase() === name.toLowerCase());
-    if (exists) return;
+    const match = catalog.value.find((entry) => entry.name.toLowerCase() === name.toLowerCase());
+    if (match) {
+        item.kind = match.kind;
+        if (!item.unit && (UNITS as readonly string[]).includes(match.defaultUnit)) {
+            item.unit = match.defaultUnit as IRecipeIngredient['unit'];
+        }
+        return;
+    }
 
     try {
         await referenceData.createIngredient({ name, kind: item.kind, defaultUnit: item.unit || 'g' });
@@ -51,6 +78,14 @@ async function onNameBlur(item: RecipeIngredient) {
         console.error('Error saving new ingredient to catalog:', error);
         notifications.notify('error', `Couldn't save "${name}" to the ingredient catalog.`);
     }
+}
+
+function addIngredient() {
+    ingredients.value = [...ingredients.value, makeIngredientRow()];
+}
+
+function removeIngredient(id: IRecipeIngredient['id']) {
+    ingredients.value = ingredients.value.filter((item) => item.id !== id);
 }
 </script>
 
@@ -62,16 +97,30 @@ async function onNameBlur(item: RecipeIngredient) {
                 <template #item="{ index }">
                     <div class="group flex items-center gap-2 p-3.5">
                         <span class="w-5 shrink-0 text-right text-sm text-gray-400">{{ index + 1 }}.</span>
-                        <input
-                                :id="`ingredient-name-${rowAt(index).id}`"
-                                v-model="rowAt(index).name"
-                                type="text"
-                                :name="`ingredient-name-${rowAt(index).id}`"
-                                placeholder="Ingredient name"
-                                class="min-w-0 flex-1 bg-transparent text-sm focus:outline-none"
-                                :class="textColor(rowAt(index).kind)"
-                                @blur="onNameBlur(rowAt(index))"
-                        />
+                        <div class="relative min-w-0 flex-1">
+                            <input
+                                    :id="`ingredient-name-${rowAt(index).id}`"
+                                    v-model="rowAt(index).name"
+                                    type="text"
+                                    :name="`ingredient-name-${rowAt(index).id}`"
+                                    placeholder="Ingredient name"
+                                    autocomplete="off"
+                                    class="min-w-0 w-full bg-transparent text-sm focus:outline-none"
+                                    :class="textColor(rowAt(index).kind)"
+                                    @focus="openSuggestionsFor = rowAt(index).id"
+                                    @input="openSuggestionsFor = rowAt(index).id"
+                                    @blur="onNameBlur(rowAt(index))"
+                            />
+                            <ul v-if="openSuggestionsFor === rowAt(index).id && matchingCatalog(rowAt(index).name).length"
+                                class="absolute z-10 top-full left-0 mt-1 w-full max-h-40 overflow-auto rounded border border-gray-300 bg-white shadow-md">
+                                <li v-for="entry in matchingCatalog(rowAt(index).name)" :key="entry.id"
+                                    class="px-2 py-1.5 text-sm cursor-pointer hover:bg-gray-100"
+                                    :class="textColor(entry.kind)"
+                                    @mousedown.prevent="selectCatalogEntry(rowAt(index), entry)">
+                                    {{ entry.name }}
+                                </li>
+                            </ul>
+                        </div>
                         <input
                                 :id="`ingredient-amount-${rowAt(index).id}`"
                                 :value="rowAt(index).amount"
@@ -107,7 +156,7 @@ async function onNameBlur(item: RecipeIngredient) {
                                 type="button"
                                 class="delete shrink-0 cursor-pointer text-gray-400 opacity-0 hover:text-red-500 group-hover:opacity-100 w-5 h-5"
                                 aria-label="Remove ingredient"
-                                @click="store.removeIngredient(rowAt(index).id)"
+                                @click="removeIngredient(rowAt(index).id)"
                         >
                         </button>
                     </div>
@@ -117,7 +166,7 @@ async function onNameBlur(item: RecipeIngredient) {
 
         <button type="button"
                 class="self-end bg-amber-500 text-white px-4 py-2 rounded hover:bg-amber-600 w-1/4 cursor-pointer font-bold"
-                @click="store.addIngredient">
+                @click="addIngredient">
             Add ingredient
         </button>
     </BaseCard>

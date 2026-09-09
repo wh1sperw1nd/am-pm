@@ -28,7 +28,7 @@ const {
     load?: () => Promise<void>;
 }>();
 
-const selected = defineModel<ItemId | null>();
+const selected = defineModel<ItemId | null>({ default: null });
 
 const vesselSrc = (item: IListItem) => imagesByFolder[imageFolder][`../assets/img/${imageFolder}/${item.slug}.png`];
 
@@ -85,7 +85,7 @@ onMounted(async () => {
                         <img class="flex-1" width="256" height="256" :src="vesselSrc(item)" :alt="item.name"
                              aria-hidden="true"/>
                         <span
-                                class="p-3 border-t w-full text-center border-gray-200 transition-colors group-has-checked:bg-blue-600 group-has-checked:text-white"
+                                class="p-3 border-t w-full text-center border-gray-200 transition-colors group-has-checked:bg-blue-600 group-has-checked:text-white dark:text-black"
                         >{{ item.name }}</span>
                     </label>
                 </li>

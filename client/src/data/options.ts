@@ -55,6 +55,18 @@ export const METHODS: IListItem[] = [
     { id: 5, slug: 'layered', name: 'Layered' },
 ];
 
+export const COFFEE_METHODS: IListItem[] = [
+    { id: 1, slug: 'any', name: 'Not important' },
+    { id: 2, slug: 'espresso', name: 'Espresso' },
+    { id: 3, slug: 'pour_over', name: 'Pour-over' },
+    { id: 4, slug: 'french_press', name: 'French press' },
+    { id: 5, slug: 'drip', name: 'Drip' },
+    { id: 6, slug: 'moka_pot', name: 'Moka pot' },
+    { id: 7, slug: 'aeropress', name: 'AeroPress' },
+    { id: 8, slug: 'cold_brew', name: 'Cold brew steep' },
+    { id: 9, slug: 'siphon', name: 'Siphon' },
+];
+
 export const DECORATIONS: IListItem[] = [
     { id: 1, slug: 'lemon', name: 'Lemon' },
     { id: 2, slug: 'lime', name: 'Lime' },
@@ -100,4 +112,14 @@ export const CUP_TYPES: IListItem[] = [
     { id: 16, slug: 'pitcher', name: 'Pitcher' },
     { id: 17, slug: 'pour_over_cone', name: 'Pour over cone' },
     { id: 18, slug: 'siphon_coffee_decanter', name: 'Siphon coffee decanter' },
+];
+
+export const COFFEE_TYPES: IListItem[] = [
+    { id: 1, slug: 'espresso_based', name: 'Espresso-based' },
+    { id: 2, slug: 'milk_based', name: 'Milk-based' },
+    { id: 3, slug: 'black', name: 'Black' },
+    { id: 4, slug: 'iced', name: 'Iced' },
+    { id: 5, slug: 'specialty', name: 'Specialty' },
+    { id: 6, slug: 'dessert', name: 'Dessert' },
+    { id: 7, slug: 'decaf', name: 'Decaf' },
 ];

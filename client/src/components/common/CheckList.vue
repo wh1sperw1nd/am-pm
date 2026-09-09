@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useId } from 'vue';
 import ScrollList from '@/components/common/ScrollList.vue';
-import type { ItemId, ListItem } from '@/types/ui.ts';
+import type { ItemId, IListItem } from '@/types/ui.ts';
 
-defineProps<{ items: ListItem[] }>();
+defineProps<{ items: IListItem[] }>();
 
-const selected = defineModel<ItemId[]>({ default: () => [] });
+const selected = defineModel<ItemId[]>({ default: (): ItemId[] => [] });
 const uid = useId();
 </script>
 

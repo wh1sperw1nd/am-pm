@@ -2,11 +2,10 @@
 import BaseCard from "@/components/common/BaseCard.vue";
 import TickScale from "@/components/common/TickScale.vue";
 import CheckboxField from "@/components/common/CheckboxField.vue";
-import { storeToRefs } from 'pinia';
-import { useSommelierStore } from '@/store/sommelier';
 import { TIME_VALUES } from '@/data/options';
 
-const { cookingTime, extendedTime } = storeToRefs(useSommelierStore());
+const cookingTime = defineModel<number>('cookingTime', { default: TIME_VALUES[0] });
+const extendedTime = defineModel<boolean>('extendedTime', { default: false });
 </script>
 
 <template>

@@ -1,16 +1,9 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
-import type { ItemId } from '@/types/ui';
-import type { Unit, IngredientKind, IRecipeIngredient } from '@/store/sommelier';
-
-let nextIngredientRowId = 0;
-const makeIngredientRow = (name = '', amount = '', unit: Unit = '', kind: IngredientKind = 'ingredient'): IRecipeIngredient => ({
-	id: nextIngredientRowId++,
-	name,
-	amount,
-	unit,
-	kind,
-});
+import type { ItemId, IListItem } from '@/types/ui';
+import type { IRecipeIngredient } from '@/types/ingredients';
+import { useReferenceDataStore } from '@/store/referenceData';
+import { useCompatibilityFilter } from '@/utils/compatibilityFilter';
 
 /**
  * Coffee-recipe counterpart to `useSommelierStore`. Coffee's core chain (cup, coffee
@@ -19,10 +12,33 @@ const makeIngredientRow = (name = '', amount = '', unit: Unit = '', kind: Ingred
  * this mirrors that store's shape instead of reusing it.
  */
 export const useBaristaStore = defineStore('barista', () => {
+	const referenceData = useReferenceDataStore();
+
 	const cup = ref<ItemId | null>(null);
 	const coffeeType = ref<ItemId | null>(null);
 	const strength = ref<ItemId | null>(null);
 	const base = ref<ItemId | null>(null);
+
+	/** Finds the slug of the item with the given id in `list`, or null if nothing is selected/found. */
+	const slugOf = (list: IListItem[], id: ItemId | null) => list.find((item) => item.id === id)?.slug ?? null;
+
+	/** Coffee types allowed for the currently selected cup; unrestricted if the cup has no compatibility entry. */
+	const availableCoffeeTypes = useCompatibilityFilter(
+		() => referenceData.coffeeTypes,
+		() => cup.value as string | null, // cup is keyed by slug directly, not by id
+		() => referenceData.cupTypeCompatibilityMap,
+	);
+
+	/**
+	 * Base drinks allowed for the currently selected strength; unrestricted if the strength has
+	 * no compatibility entry. Reuses the shared strength/base data - alcohol tier and spirit
+	 * aren't cocktail-specific concepts, so the same compatibility map applies to a boozy coffee.
+	 */
+	const availableBase = useCompatibilityFilter(
+		() => referenceData.base,
+		() => slugOf(referenceData.strengths, strength.value),
+		() => referenceData.strengthBaseCompatibilityMap,
+	);
 
 	const ingredients = ref<IRecipeIngredient[]>([]);
 
@@ -44,14 +60,6 @@ export const useBaristaStore = defineStore('barista', () => {
 	const altNames = ref('');
 	const shortDescription = ref('');
 	const instructions = ref('');
-
-	function addIngredient() {
-		ingredients.value.push(makeIngredientRow());
-	}
-
-	function removeIngredient(id: ItemId) {
-		ingredients.value = ingredients.value.filter((item) => item.id !== id);
-	}
 
 	function toPayload() {
 		return {
@@ -102,6 +110,8 @@ export const useBaristaStore = defineStore('barista', () => {
 		coffeeType,
 		strength,
 		base,
+		availableCoffeeTypes,
+		availableBase,
 		ingredients,
 		portions,
 		doublePortions,
@@ -116,8 +126,6 @@ export const useBaristaStore = defineStore('barista', () => {
 		altNames,
 		shortDescription,
 		instructions,
-		addIngredient,
-		removeIngredient,
 		toPayload,
 		reset,
 	};

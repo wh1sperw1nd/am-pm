@@ -1,48 +1,11 @@
-import {computed, ref, type ComputedRef} from 'vue';
+import {ref} from 'vue';
 import {defineStore} from 'pinia';
 import type {ItemId, IListItem} from '@/types/ui';
 import {useReferenceDataStore} from '@/store/referenceData';
+import {useCompatibilityFilter} from '@/utils/compatibilityFilter';
+import type {IRecipeIngredient} from '@/types/ingredients';
 
-/**
- * Filters `allItems` down to the ones listed for `key` in `compatibilityMap`; returns
- * `allItems` unchanged when there's no key selected or no compatibility entry for it.
- */
-const useCompatibilityFilter = <T extends IListItem>(
-	allItems: () => T[],
-	key: () => string | null,
-	compatibilityMap: () => Record<string, string[]>,
-): ComputedRef<T[]> => {
-	return computed(() => {
-		const all = allItems();
-		const selectedKey = key();
-		if (selectedKey === null) return all;
-		const allowed = compatibilityMap()[selectedKey];
-		if (!allowed) return all;
-		return all.filter((item) => allowed.includes(item.slug));
-	});
-};
-
-export const UNITS = ['g', 'kg', 'ml', 'l', 'cl', 'oz', 'tbsp', 'tsp', 'dash', 'pc'] as const;
-export type Unit = typeof UNITS[number] | '';
-
-export type IngredientKind = 'ingredient' | 'garnish';
-
-export interface IRecipeIngredient {
-	id: number;
-	name: string;
-	amount: string;
-	unit: Unit;
-	kind: IngredientKind;
-}
-
-let nextIngredientRowId = 0;
-const makeIngredientRow = (name = '', amount = '', unit: Unit = '', kind: IngredientKind = 'ingredient'): IRecipeIngredient => ({
-	id: nextIngredientRowId++,
-	name,
-	amount,
-	unit,
-	kind,
-});
+export {UNITS, type Unit, type IngredientKind, type IRecipeIngredient} from '@/types/ingredients';
 
 export const useSommelierStore = defineStore('sommelier', () => {
 	const referenceData = useReferenceDataStore();
@@ -96,14 +59,6 @@ export const useSommelierStore = defineStore('sommelier', () => {
 		() => slugOf(referenceData.strengths, strength.value),
 		() => referenceData.strengthBaseCompatibilityMap,
 	);
-
-	function addIngredient() {
-		ingredients.value.push(makeIngredientRow());
-	}
-
-	function removeIngredient(id: ItemId) {
-		ingredients.value = ingredients.value.filter((item) => item.id !== id);
-	}
 
 	function toPayload() {
 		return {
@@ -171,8 +126,6 @@ export const useSommelierStore = defineStore('sommelier', () => {
 		availableCocktailTypes,
 		availableStrengths,
 		availableBase,
-		addIngredient,
-		removeIngredient,
 		toPayload,
 		reset,
 	};
